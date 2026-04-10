@@ -1,0 +1,49 @@
+Day 01 Commands Reference
+
+# Install minikube (run in PowerShell as Administrator)
+winget install Kubernetes.minikube
+
+# Install kubectl
+winget install Kubernetes.kubectl
+
+# Verify installs
+minikube version
+kubectl version --client
+
+# Start local cluster
+minikube start --driver=docker --cpus=2 --memory=4096
+
+# Check cluster status
+kubectl cluster-info
+kubectl get nodes
+kubectl get nodes -o wide
+
+# Create namespace imperatively
+kubectl create namespace k8s-day01
+
+# Run a pod imperatively (observe, then delete — do not rely on this approach)
+kubectl run nginx-imperative --image=nginx:stable --namespace=k8s-day01
+kubectl get pods -n k8s-day01
+kubectl describe pod nginx-imperative -n k8s-day01
+kubectl delete pod nginx-imperative -n k8s-day01
+
+# Apply declarative manifests
+kubectl apply -f manifests/namespace.yaml
+kubectl apply -f manifests/pod.yaml
+kubectl apply -f manifests/deployment.yaml
+
+# Observe deployment rollout
+kubectl rollout status deployment/nginx-deployment -n k8s-day01
+kubectl get pods -n k8s-day01 -o wide
+kubectl describe deployment nginx-deployment -n k8s-day01
+
+# Simulate pod deletion — watch self-healing
+kubectl delete pod <pod-name> -n k8s-day01
+kubectl get pods -n k8s-day01 -w
+
+# Scale the deployment
+kubectl scale deployment nginx-deployment --replicas=4 -n k8s-day01
+
+# Clean up
+kubectl delete namespace k8s-day01
+minikube stop

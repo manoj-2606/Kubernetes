@@ -1,0 +1,9 @@
+Day 01 Goals — Kubernetes Foundations
+
+1. Understand the Kubernetes architecture: control plane components and worker node components
+2. Understand the reconciliation loop (desired state vs actual state)
+3. Install kubectl and minikube on Windows (PowerShell)
+4. Bootstrap a single-node local cluster with minikube
+5. Understand the difference between imperative and declarative approaches
+6. Create a Namespace, deploy a Pod imperatively, then replace it with a declarative Deployment
+7. Observe rollout behavior and understand why Deployments exist over raw Pods
