@@ -1,4 +1,4 @@
-Day 01 Goals — Kubernetes Foundations
+# Day 01 — Goals
 
 1. Understand the Kubernetes architecture: control plane components and worker node components
 2. Understand the reconciliation loop (desired state vs actual state)

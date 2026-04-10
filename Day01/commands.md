@@ -1,49 +1,64 @@
-Day 01 Commands Reference
+# Day 01 — Commands Reference
 
-# Install minikube (run in PowerShell as Administrator)
+## Install Toolchain
+```powershell
 winget install Kubernetes.minikube
-
-# Install kubectl
 winget install Kubernetes.kubectl
-
-# Verify installs
 minikube version
 kubectl version --client
+```
 
-# Start local cluster
+## Start Cluster
+```powershell
 minikube start --driver=docker --cpus=2 --memory=4096
-
-# Check cluster status
 kubectl cluster-info
 kubectl get nodes
 kubectl get nodes -o wide
+```
 
-# Create namespace imperatively
+## Imperative Pod (observe only — do not rely on this approach)
+```powershell
 kubectl create namespace k8s-day01
-
-# Run a pod imperatively (observe, then delete — do not rely on this approach)
 kubectl run nginx-imperative --image=nginx:stable --namespace=k8s-day01
 kubectl get pods -n k8s-day01
 kubectl describe pod nginx-imperative -n k8s-day01
 kubectl delete pod nginx-imperative -n k8s-day01
+```
 
-# Apply declarative manifests
-kubectl apply -f manifests/namespace.yaml
-kubectl apply -f manifests/pod.yaml
-kubectl apply -f manifests/deployment.yaml
+## Apply Declarative Manifests
+```powershell
+kubectl apply -f manifests/namespace.yml
+kubectl apply -f manifests/pod.yml
+kubectl apply -f manifests/deployment.yml
+```
 
-# Observe deployment rollout
+## Observe and Validate
+```powershell
 kubectl rollout status deployment/nginx-deployment -n k8s-day01
 kubectl get pods -n k8s-day01 -o wide
 kubectl describe deployment nginx-deployment -n k8s-day01
+```
 
-# Simulate pod deletion — watch self-healing
+## Self-Healing Observation (exit checkpoint)
+```powershell
 kubectl delete pod <pod-name> -n k8s-day01
 kubectl get pods -n k8s-day01 -w
+```
 
-# Scale the deployment
+## Scale
+```powershell
 kubectl scale deployment nginx-deployment --replicas=4 -n k8s-day01
+```
 
-# Clean up
+## Cleanup
+```powershell
 kubectl delete namespace k8s-day01
 minikube stop
+```
+
+## Git Commit
+```powershell
+git add .
+git commit -m "day-01: kubernetes foundations, local cluster, first workload"
+git push
+```
