@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: k8s-day03
+data:
+  APP_ENV: "staging"
+  APP_PORT: "8080"
+  APP_LOG_LEVEL: "info"
+  app.properties: |
+    environment=staging
+    port=8080
+    log.level=info
+    max.connections=100
