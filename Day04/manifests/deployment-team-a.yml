@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-team-a
+  namespace: team-a
+  labels:
+    app: app-team-a
+    day: "05"
+  annotations:
+    kubernetes.io/change-cause: "day-05 team-a baseline deployment"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-team-a
+  template:
+    metadata:
+      labels:
+        app: app-team-a
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
