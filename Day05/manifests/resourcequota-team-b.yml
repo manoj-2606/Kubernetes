@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-b-quota
+  namespace: team-b
+spec:
+  hard:
+    requests.cpu: "250m"
+    requests.memory: "256Mi"
+    limits.cpu: "500m"
+    limits.memory: "512Mi"
+    pods: "3"
+    services: "2"
+    secrets: "3"
+    configmaps: "3"

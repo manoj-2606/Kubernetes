@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quota-breaker
+  namespace: team-a
+  labels:
+    app: quota-breaker
+    day: "05"
+  annotations:
+    kubernetes.io/change-cause: "intentional quota breach for observation"
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: quota-breaker
+  template:
+    metadata:
+      labels:
+        app: quota-breaker
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
