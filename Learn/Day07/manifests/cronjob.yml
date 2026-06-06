@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scheduled-job
+  namespace: k8s-day07
+  labels:
+    app: scheduled-job
+    day: "07"
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 120
+      template:
+        metadata:
+          labels:
+            app: scheduled-job
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scheduled
+              image: busybox:stable
+              command:
+                - sh
+                - -c
+                - "echo 'scheduled job running at'; date; echo 'done'"
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "32Mi"
+                limits:
+                  cpu: "100m"
+                  memory: "64Mi"

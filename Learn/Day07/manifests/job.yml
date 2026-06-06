@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+  namespace: k8s-day07
+  labels:
+    app: batch-job
+    day: "07"
+spec:
+  completions: 3
+  parallelism: 1
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: batch-job
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: batch
+          image: busybox:stable
+          command:
+            - sh
+            - -c
+            - "echo 'batch job running'; sleep 5; echo 'batch job complete'"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"

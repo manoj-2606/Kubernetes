@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: log-collector
+  namespace: k8s-day07
+  labels:
+    app: log-collector
+    day: "07"
+  annotations:
+    kubernetes.io/change-cause: "day-07 log collector daemonset"
+spec:
+  selector:
+    matchLabels:
+      app: log-collector
+  template:
+    metadata:
+      labels:
+        app: log-collector
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: log-collector
+          image: busybox:stable
+          command:
+            - sh
+            - -c
+            - "while true; do echo 'collecting logs from node'; sleep 30; done"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
