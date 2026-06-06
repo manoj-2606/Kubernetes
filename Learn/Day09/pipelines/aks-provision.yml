@@ -1,0 +1,137 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - Day09/terraform/**
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  TF_WORKING_DIR: Day09/terraform
+  BACKEND_RG: rg-aks-tfstate
+  BACKEND_SA: stakslearningtfstate
+  BACKEND_CONTAINER: tfstate
+  LOCATION: centralindia
+
+stages:
+  - stage: Bootstrap
+    displayName: Bootstrap Remote State
+    jobs:
+      - job: BootstrapState
+        displayName: Create Terraform Backend Storage
+        steps:
+          - task: AzureCLI@2
+            displayName: Create Backend Storage Account
+            inputs:
+              azureSubscription: azure-service-connection-aks
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                az group create \
+                  --name $(BACKEND_RG) \
+                  --location $(LOCATION) || true
+
+                az storage account create \
+                  --name $(BACKEND_SA) \
+                  --resource-group $(BACKEND_RG) \
+                  --location $(LOCATION) \
+                  --sku Standard_LRS \
+                  --kind StorageV2 \
+                  --min-tls-version TLS1_2 || true
+
+                az storage container create \
+                  --name $(BACKEND_CONTAINER) \
+                  --account-name $(BACKEND_SA) || true
+
+  - stage: Plan
+    displayName: Terraform Plan
+    dependsOn: Bootstrap
+    jobs:
+      - job: TerraformPlan
+        displayName: Plan AKS Infrastructure
+        steps:
+          - task: AzureCLI@2
+            displayName: Terraform Init and Plan
+            inputs:
+              azureSubscription: azure-service-connection-aks
+              scriptType: bash
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              workingDirectory: $(TF_WORKING_DIR)
+              inlineScript: |
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_OIDC_TOKEN=$idToken
+                export ARM_TENANT_ID=$tenantId
+                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                export ARM_USE_OIDC=true
+
+                terraform init \
+                  -backend-config="resource_group_name=$(BACKEND_RG)" \
+                  -backend-config="storage_account_name=$(BACKEND_SA)" \
+                  -backend-config="container_name=$(BACKEND_CONTAINER)" \
+                  -backend-config="key=aks-learning.tfstate"
+
+                terraform validate
+                terraform plan -out=tfplan -var-file=terraform.tfvars
+
+          - publish: $(TF_WORKING_DIR)/tfplan
+            artifact: tfplan
+
+  - stage: Apply
+    displayName: Terraform Apply
+    dependsOn: Plan
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: TerraformApply
+        displayName: Apply AKS Infrastructure
+        environment: aks-learning
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - download: current
+                  artifact: tfplan
+
+                - task: AzureCLI@2
+                  displayName: Terraform Apply
+                  inputs:
+                    azureSubscription: azure-service-connection-aks
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    addSpnToEnvironment: true
+                    workingDirectory: $(TF_WORKING_DIR)
+                    inlineScript: |
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_OIDC_TOKEN=$idToken
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                      export ARM_USE_OIDC=true
+
+                      terraform init \
+                        -backend-config="resource_group_name=$(BACKEND_RG)" \
+                        -backend-config="storage_account_name=$(BACKEND_SA)" \
+                        -backend-config="container_name=$(BACKEND_CONTAINER)" \
+                        -backend-config="key=aks-learning.tfstate"
+
+                      terraform apply -auto-approve $(Pipeline.Workspace)/tfplan/tfplan
+
+                - task: AzureCLI@2
+                  displayName: Configure kubectl
+                  inputs:
+                    azureSubscription: azure-service-connection-aks
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az aks get-credentials \
+                        --resource-group rg-aks-learning \
+                        --name aks-learning \
+                        --overwrite-existing
+
+                      kubectl get nodes
+                      kubectl get namespaces
