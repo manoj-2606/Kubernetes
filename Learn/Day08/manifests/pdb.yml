@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx-pdb
+  namespace: k8s-day08
+  labels:
+    day: "08"
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: nginx-hpa

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: with-toleration
+  namespace: k8s-day08
+  labels:
+    app: with-toleration
+    day: "08"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: with-toleration
+  template:
+    metadata:
+      labels:
+        app: with-toleration
+    spec:
+      tolerations:
+        - key: "workload"
+          operator: "Equal"
+          value: "batch"
+          effect: "NoSchedule"
+      containers:
+        - name: nginx
+          image: nginx:stable
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"

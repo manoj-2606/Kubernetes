@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hpa
+  namespace: k8s-day08
+  labels:
+    app: nginx-hpa
+    day: "08"
+  annotations:
+    kubernetes.io/change-cause: "day-08 hpa target deployment"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-hpa
+  template:
+    metadata:
+      labels:
+        app: nginx-hpa
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hpa
+  namespace: k8s-day08
+spec:
+  selector:
+    app: nginx-hpa
+  ports:
+    - port: 80
+      targetPort: 80

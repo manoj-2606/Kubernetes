@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affinity-app
+  namespace: k8s-day08
+  labels:
+    app: affinity-app
+    day: "08"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: affinity-app
+  template:
+    metadata:
+      labels:
+        app: affinity-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: zone
+                    operator: In
+                    values:
+                      - primary
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              preference:
+                matchExpressions:
+                  - key: zone
+                    operator: In
+                    values:
+                      - primary
+      containers:
+        - name: nginx
+          image: nginx:stable
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
