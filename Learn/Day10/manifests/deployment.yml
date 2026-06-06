@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-reader
+  namespace: day10
+  labels:
+    app: secret-reader
+    day: "10"
+  annotations:
+    kubernetes.io/change-cause: "day-10 key vault secret reader deployment"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secret-reader
+  template:
+    metadata:
+      labels:
+        app: secret-reader
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: workload-sa
+      containers:
+        - name: secret-reader
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets
+              readOnly: true
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-password
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: api-key
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: azure-keyvault-secrets
