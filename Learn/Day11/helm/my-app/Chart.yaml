@@ -1,0 +1,6 @@
+apiVersion: v2
+name: my-app
+description: A simple Helm chart for AKS learning Day 11
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
